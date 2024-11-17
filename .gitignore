@@ -1,0 +1,55 @@
+# Python-specific
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+venv/
+*.egg-info/
+*.eggs/
+dist/
+build/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# VSCode and other IDE-specific files
+.vscode/
+.idea/
+
+# System-specific files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Dataset files (if large, like CSVs, avoid adding to version control)
+data/
+!data/.gitkeep  # If you want to keep the directory structure, add a .gitkeep file
+
+# TensorFlow / Keras model files (large files)
+*.h5
+*.pb
+*.ckpt
+*.tflite
+
+# Joblib files (model pickles)
+*.pkl
+
+# Local environment files
+.env
+*.env
+.env.*
+.venv
+
+# pytest cache
+.cache/
+
+# Python build directories
+*.egg
+*.egg-info
+dist/
+build/
+
+# Other
+*.swp  # Vim swap files
