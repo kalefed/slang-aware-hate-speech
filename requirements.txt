@@ -1,10 +1,6 @@
-pandas
-seaborn
-matplotlib
-tensorflow
-joblib
-nltk
-wordcloud
-numpy
+transformers
+torch
 scikit-learn
-gensim
+requests
+pandas
+tqdm
