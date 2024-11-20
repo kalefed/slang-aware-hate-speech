@@ -1,17 +1,11 @@
-from transformers import BertForSequenceClassification, BertTokenizer, pipeline
-import torch
+from transformers import pipeline
 
-model = BertForSequenceClassification.from_pretrained("bert-base-uncased")
-tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+# Load the sentiment-analysis pipeline directly (fine-tuned model for sentiment)
+classifier = pipeline("sentiment-analysis")
 
-#  tokenize the text
-text = "BERT is amazing!"
-inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True)
+# Input text
+text = "ok boomer"
 
-# make predictions
-outputs = model(**inputs)
-predicted_class = torch.argmax(outputs.logits).item()
-print("Predicted Sentiment Class:", predicted_class)
-
-unmasker = pipeline("fill-mask", model="bert-base-uncased")
-unmasker("Artificial Intelligence [MASK] take over the world.")
+# Get prediction
+result = classifier(text)
+print(result)  # Outputs the label (positive/negative) and confidence score
