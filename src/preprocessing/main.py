@@ -67,7 +67,8 @@ class Preprocessing:
             text = text.replace(emoji, f" {desc} ")
         return text
 
-    def clean_text(self, text):
+    @staticmethod
+    def clean_tweet(self, text):
         """Apply all preprocessing steps to the text.
 
         Args:
@@ -81,11 +82,16 @@ class Preprocessing:
         text = self.remove_mentions(text)
         text = self.to_lowercase(text)
         text = self.convert_emojis(text)
-        return text  # TODO - should we add this text here as a new row or should that be done in another function??
+        return text
 
-    def add_clean_text(self):
-        # TODO - implement this function! possibly adds clean_text row to data
-        pass
+    def clean_tweets(self, df):
+        """Cleans the tweet text and adds a new row to the dataframe with the cleaned text.
+
+        Args:
+            df (DataFrame): data to be used
+        """
+        df["text_clean"] = [self.clean_tweet(tweet) for tweet in df["tweet_text"]]
+        return df
 
     def code_sentiment(self, df):
         """Replace sentiment labels in the DataFrame with numeric codes.
