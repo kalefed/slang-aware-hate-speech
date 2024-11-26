@@ -1,42 +1,47 @@
 import torch  # Required for TensorDataset, RandomSampler, SequentialSampler, and DataLoader
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
+from sklearn.model_selection import train_test_split
 
 
-class Dataloader:
+def split_dataset(df, seed_value):
+    """Splits the data into a test and training set.
+
+    Args:
+        df (DataFrame): Processed and cleaned text and sentiment data
     """
-    Class that creates the dataloaders for the given dataset to be used to train BERT model.
+    X = df["text_clean"]
+    y = df["cyberbullying_type"]
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, stratify=y, random_state=seed_value
+    )
+
+    return X_train, X_test, y_train, y_test
+
+
+def create_dataloader(inputs, masks, labels, sampler_type, batch_size=32):
+    """Creates the dataloader for a given dataset.
+
+    Args:
+        inputs (torch.Tensor): The input data
+        masks (torch.Tensor): The attention masks
+        labels (torch.Tensor): The data labels
+        sampler_type (str): Type of sampler (random or sequential)
+
+    Raises:
+        ValueError: If the sampler type is not valid
+
+    Returns:
+        DataLoader: Configured DataLoader object.
     """
+    data = TensorDataset(inputs, masks, labels)
 
-    def __init__(self, batch_size=32):
-        self.batch_size = batch_size
+    match sampler_type:
+        case "random":
+            sampler = RandomSampler(data)
+        case "sequential":
+            sampler = SequentialSampler(data)
+        case _:
+            raise ValueError("Invalid sampler_type. Choose 'random' or 'sequential'.")
 
-    def create_dataloader(self, inputs, masks, labels, sampler_type):
-        """
-        Creates the dataloader for a given dataset.
-
-        Args:
-            inputs (torch.Tensor): The input data
-            masks (torch.Tensor): The attention masks
-            labels (torch.Tensor): The data labels
-            sampler_type (str): Type of sampler (random or sequential)
-
-        Raises:
-            ValueError: If the sampler type is not valid
-
-        Returns:
-            DataLoader: Configured DataLoader object.
-        """
-        data = TensorDataset(inputs, masks, labels)
-
-        match sampler_type:
-            case "random":
-                sampler = RandomSampler(data)
-            case "sequential":
-                sampler = SequentialSampler(data)
-            case _:
-                raise ValueError(
-                    "Invalid sampler_type. Choose 'random' or 'sequential'."
-                )
-
-        dataloader = DataLoader(data, sampler=sampler, batch_size=self.batch_size)
-        return dataloader
+    return DataLoader(data, sampler=sampler, batch_size=batch_size)
