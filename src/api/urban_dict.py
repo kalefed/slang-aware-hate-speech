@@ -50,6 +50,8 @@ def get_slang_words(phrase):
     # initialize an empty set for matched slang
     matched_slang = set()
 
+    #words_in_phrase = set(re.findall(r'\b\w+\b', phrase.lower()))
+
     # take the phrase and determine which words are in the slang corpus
     with open("../data/slang.csv", mode="r") as file:
         # create a CSV reader object
