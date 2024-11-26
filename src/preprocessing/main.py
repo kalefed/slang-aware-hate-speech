@@ -89,5 +89,5 @@ class Preprocessing:
         Returns:
             pandas dataframe: updated DataFrame with coded sentiment
         """
-        df["sentiment"] = df["sentiment"].replace(self.sentiment_mapping)
+        df["cyberbullying_type"] = df["cyberbullying_type"].replace(self.sentiment_mapping)
         return df
