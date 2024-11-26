@@ -7,7 +7,7 @@ class Dataloader:
     Class that creates the dataloaders for the given dataset to be used to train BERT model.
     """
 
-    def __init__(self, batch_size):
+    def __init__(self, batch_size=32):
         self.batch_size = batch_size
 
     def create_dataloader(self, inputs, masks, labels, sampler_type):
