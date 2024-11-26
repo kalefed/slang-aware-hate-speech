@@ -6,6 +6,7 @@ import pandas as pd
 def clean_text(text):
     text = re.sub(r"http\S+", "", text)  # Remove URLs
     text = re.sub(r"@\w+", "", text)  # Remove mentions
+    text = text.lower() #lowercase
     text = re.sub(r"#[A-Za-z0-9_]+", "", text)  # Remove hashtags
     return text
 
@@ -17,6 +18,7 @@ def convert_emojis_to_text(text):
 
 # STEP 3 GET SLANG MEANINGS 
 def slang_meanings(text):
+    # from api 
     pass
 
 # STEP 4 RUN EVERYTHING FOR PREPROCESSING
@@ -25,11 +27,6 @@ def preprocess_pipeline(text):
     text = convert_emojis_to_text(text)  
     text = slang_meanings(text) # Do stuff with the slang here
     return text
-
-# STEP 5 TOKENIZE EVERYTHING
-def tokenizer(text):
-    #happens after preprocessing - use the pretrained bert tokenizer?
-    pass
 
 # SAVE ALL THE DATA
 def save_to_tsv(data, file_path):
@@ -46,7 +43,6 @@ dataset = [
 
 
 processed_text = preprocess_pipeline(unprocessed_text)
-tokenized_text = tokenizer(processed_text)
 save_to_tsv(tokenized_text, './data/processed_data.tsv')
 
 

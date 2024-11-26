@@ -1,6 +1,5 @@
 import requests
 import csv
-import re
 
 
 def get_word_definition(word):
