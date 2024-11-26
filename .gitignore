@@ -24,7 +24,6 @@ Thumbs.db
 *.log
 
 # Dataset files (if large, like CSVs, avoid adding to version control)
-data/
 !data/.gitkeep  # If you want to keep the directory structure, add a .gitkeep file
 
 # TensorFlow / Keras model files (large files)
