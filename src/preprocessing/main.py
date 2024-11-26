@@ -2,6 +2,8 @@ from api.urban_dict import get_word_definition, slang_words_def, get_slang_words
 import re
 import demoji
 import pandas as pd
+import torch
+from transformers import BertTokenizer
 
 
 class Preprocessing:
@@ -82,7 +84,7 @@ class Preprocessing:
         return text  # TODO - should we add this text here as a new row or should that be done in another function??
 
     def add_clean_text(self):
-        # TODO - implement this function!
+        # TODO - implement this function! possibly adds clean_text row to data
         pass
 
     def code_sentiment(self, df):
@@ -97,3 +99,35 @@ class Preprocessing:
             self.sentiment_mapping
         )
         return df
+
+    def tokenizer(self, data, max_length=128):
+        # TODO - this code is from kaggle file so should look over and change if needed
+        # TODO - Add docstring once done
+        tokenizer = BertTokenizer.from_pretrained(
+            "bert-base-uncased", do_lower_case=True
+        )
+        input_ids = []
+
+        attention_masks = []
+        for sent in data:
+            encoded_sent = tokenizer.encode_plus(
+                text=sent,
+                add_special_tokens=True,  # Add `[CLS]` and `[SEP]` special tokens
+                max_length=max_length,  # Choose max length to truncate/pad
+                pad_to_max_length=True,  # Pad sentence to max length
+                return_attention_mask=True,  # Return attention mask
+            )
+            input_ids.append(encoded_sent.get("input_ids"))
+            attention_masks.append(encoded_sent.get("attention_mask"))
+
+        # Convert lists to tensors
+        input_ids = torch.tensor(input_ids)
+        attention_masks = torch.tensor(attention_masks)
+
+        return input_ids, attention_masks
+
+    def convert_to_tensors(y_train_os, y_valid, y_test):
+        # TODO - add docstring & determine if we need the 'y-valid' data
+        train_labels = torch.from_numpy(y_train_os)
+        val_labels = torch.from_numpy(y_valid)
+        test_labels = torch.from_numpy(y_test)
