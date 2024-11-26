@@ -79,7 +79,11 @@ class Preprocessing:
         text = self.remove_mentions(text)
         text = self.to_lowercase(text)
         text = self.convert_emojis(text)
-        return text
+        return text  # TODO - should we add this text here as a new row or should that be done in another function??
+
+    def add_clean_text(self):
+        # TODO - implement this function!
+        pass
 
     def code_sentiment(self, df):
         """Replace sentiment labels in the DataFrame with numeric codes.
@@ -89,5 +93,7 @@ class Preprocessing:
         Returns:
             pandas dataframe: updated DataFrame with coded sentiment
         """
-        df["cyberbullying_type"] = df["cyberbullying_type"].replace(self.sentiment_mapping)
+        df["cyberbullying_type"] = df["cyberbullying_type"].replace(
+            self.sentiment_mapping
+        )
         return df
