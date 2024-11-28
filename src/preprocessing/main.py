@@ -122,8 +122,9 @@ class Preprocessing:
                 text=sent,
                 add_special_tokens=True,  # Add `[CLS]` and `[SEP]` special tokens
                 max_length=max_length,  # Choose max length to truncate/pad
-                pad_to_max_length=True,  # Pad sentence to max length
+                padding="max_length",
                 return_attention_mask=True,  # Return attention mask
+                truncation=True,
             )
             input_ids.append(encoded_sent.get("input_ids"))
             attention_masks.append(encoded_sent.get("attention_mask"))
