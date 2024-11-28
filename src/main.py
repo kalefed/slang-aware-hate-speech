@@ -1,23 +1,25 @@
+import os
+
+import numpy as np
 import pandas as pd
-import torch  # handles model training and evaluation
-from transformers import (
-    BertForSequenceClassification,
-    AdamW,
-)  # provides tools for using BERT
-from sklearn.metrics import (
-    classification_report,
-)  # generates a report to see how wel the model is performing based on accuracy and precision
-from tqdm import tqdm  # visual progress bar
-from utils import split_dataset, create_dataloader
+import torch
+from tqdm import tqdm
+from transformers import BertForSequenceClassification, AdamW
+from sklearn.metrics import classification_report
+from imblearn.over_sampling import RandomOverSampler
+
 from preprocessing.main import Preprocessing  # TODO - this import needs to be tested :p
+from utils import split_dataset, create_dataloader
 
 
 # checks if the GPU is avalible for faster processing
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def read_data(path):
-    return pd.read_csv(path)
+def read_data(file_name):
+    file_dir = os.path.dirname(__file__)
+    csv_path = os.path.join(file_dir, "..", "data", file_name)
+    return pd.read_csv(csv_path)
 
 
 # training function
@@ -101,64 +103,42 @@ def eval_model(model, data_loader, device):
     )
 
 
-# # main function
-# def main(train_loader, val_loader):
-#     """
-#     Fine-tunes a BERT model for text classification using preprocessed data.
-#     Assumes `train_loader` and `val_loader` are DataLoader objects created elsewhere.
-#     """
-
-#     # model and training parameters
-#     EPOCHS = 4  # num of times the model will go through the training data
-#     LR = 2e-5  # controls how much the model updates the weights
-
-#     # load the pre-trained BERT model
-#     model = BertForSequenceClassification.from_pretrained(
-#         "bert-base-uncased", num_labels=2
-#     )
-#     model = model.to(device)  # move the model to the device (GPU or CPU)
-
-#     # initialize the optimizer
-#     optimizer = AdamW(model.parameters(), lr=LR, correct_bias=False)
-
-#     # training loop
-#     for epoch in range(EPOCHS):
-#         print(f"Epoch {epoch + 1}/{EPOCHS}")
-#         train_loss, train_acc = train_epoch(model, train_loader, optimizer, device)
-#         print(f"Training Loss: {train_loss}, Training Accuracy: {train_acc}")
-
-#         val_loss, val_acc, report = eval_model(model, val_loader, device)
-#         print(f"Validation Loss: {val_loss}, Validation Accuracy: {val_acc}")
-#         print("Classification Report:\n", report)
-
-#     # save the trained model
-#     MODEL_PATH = "bert_finetuned_model.pth"
-#     torch.save(model.state_dict(), MODEL_PATH)
-#     print(f"Model saved to {MODEL_PATH}")
-
-
 def main():
     # read in the data and save as a dataframe
-    df = read_data("..data/testtweets.csv")  # TODO - check this import path
+    df = read_data("testtweets.csv")  # TODO - check this import path
 
-    # do preprocessing
+    # do initial preprocessing
     preprocessing = Preprocessing()
     preprocessing.clean_tweets(df)
-    preprocessing.code_sentiment(d)
-    preprocessing.tokenizer(df)  # TODO - check if df the right value to pass?
+    preprocessing.code_sentiment(df)
 
     # split the dataset into training, testing and validation sets
     # TODO - put an actually correct seed value (8 is just a placeholder) and also figure out validation set splitting too
     X_train, X_test, y_train, y_test = split_dataset(df, seed_value=8)
 
-    # TODO - define the variables
-    preprocessing.convert_to_tensors(y_train_os, y_valid, y_test)
+    ros = RandomOverSampler()
+    X_train_os, y_train_os = ros.fit_resample(np.array(X_train), np.array(y_train))
+
+    # tokenize the inpits
+    train_inputs, train_masks = preprocessing.tokenizer(X_train_os)
+    val_inputs, val_masks = preprocessing.tokenizer(X_valid)
+    test_inputs, test_masks = preprocessing.tokenizer(X_test)
+
+    # TODO - define the missing variables
+    train_labels, val_labels, test_labels = preprocessing.convert_to_tensors(
+        y_train_os, y_valid, y_test
+    )
 
     # get and initialize the loaders
-    # TODO - get the missing parameters
-    train_loader = create_dataloader(inputs, masks, labels, "random", batch_size=32)
-    val_loader = create_dataloader(inputs, masks, labels, "sequential", batch_size=32)
-    test_loader = create_dataloader(inputs, masks, labels, "sequential", batch_size=32)
+    train_loader = create_dataloader(
+        train_inputs, train_masks, train_labels, "random", batch_size=32
+    )
+    val_loader = create_dataloader(
+        val_inputs, val_masks, val_labels, "sequential", batch_size=32
+    )
+    test_loader = create_dataloader(
+        test_inputs, test_masks, test_labels, "sequential", batch_size=32
+    )
 
     # TODO - add in previous main function logic here
 
