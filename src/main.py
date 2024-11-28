@@ -119,7 +119,7 @@ def eval_model(model, data_loader, device):
     )
 
 
-#NOTE - original main function code for reference
+# NOTE - original main function code for reference
 # # main function
 # def main(train_loader, val_loader):
 #     """
@@ -155,14 +155,19 @@ def eval_model(model, data_loader, device):
 #     torch.save(model.state_dict(), MODEL_PATH)
 #     print(f"Model saved to {MODEL_PATH}")
 
+
 def main():
     # read in the data and save as a dataframe
-    df = read_data("testtweets.csv")
+    df = read_data("cyberbullying_tweets.csv")
 
     # do initial preprocessing
     preprocessing = Preprocessing()
     preprocessing.clean_tweets(df)
     preprocessing.code_sentiment(df)
+
+    # print(df["text_clean"])
+    # print("----")
+    # print(df["cyberbullying_type"])
 
     # split the dataset into training, testing and validation sets
     # TODO - there is an error with this: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2
@@ -175,7 +180,7 @@ def main():
     ros = RandomOverSampler()
     X_train_os, y_train_os = ros.fit_resample(np.array(X_train), np.array(y_train))
 
-    # tokenize the inpits
+    # tokenize the inputs
     train_inputs, train_masks = preprocessing.tokenizer(X_train_os)
     val_inputs, val_masks = preprocessing.tokenizer(X_valid)
     test_inputs, test_masks = preprocessing.tokenizer(X_test)
