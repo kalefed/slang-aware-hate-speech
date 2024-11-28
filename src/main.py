@@ -114,7 +114,11 @@ def main():
 
     # split the dataset into training, testing and validation sets
     # TODO - put an actually correct seed value (8 is just a placeholder) and also figure out validation set splitting too
-    X_train, X_test, y_train, y_test = split_dataset(df, seed_value=8)
+    seed_value = 2
+    X_train, X_test, y_train, y_test = split_dataset(
+        df, seed_value, df["text_clean"], df["cyberbullying_type"]
+    )
+    X_train, X_valid, y_train, y_valid = split_dataset(df, seed_value, X_train, y_train)
 
     ros = RandomOverSampler()
     X_train_os, y_train_os = ros.fit_resample(np.array(X_train), np.array(y_train))

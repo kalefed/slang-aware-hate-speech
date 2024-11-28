@@ -3,17 +3,14 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 from sklearn.model_selection import train_test_split
 
 
-def split_dataset(df, seed_value):
+def split_dataset(df, seed_value, x, y):
     """Splits the data into a test and training set.
 
     Args:
         df (DataFrame): Processed and cleaned text and sentiment data
     """
-    X = df["text_clean"]
-    y = df["cyberbullying_type"]
-
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, stratify=y, random_state=seed_value
+        x, y, test_size=0.2, stratify=y, random_state=seed_value
     )
 
     return X_train, X_test, y_train, y_test
