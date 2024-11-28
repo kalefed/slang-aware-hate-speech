@@ -12,16 +12,28 @@ from imblearn.over_sampling import RandomOverSampler
 from preprocessing.main import Preprocessing
 from utils import split_dataset, create_dataloader
 
-
 # checks if the GPU is avalible for faster processing
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# set up seed value
-seed_value = 2042
-random.seed(seed_value)
-np.random.seed(seed_value)
-torch.manual_seed(seed_value)
-torch.cuda.manual_seed_all(seed_value)
+
+class Config:
+    """Configuration class to hold all settings and hyperparameters"""
+
+    seed_value = 2042
+    epochs = 4
+    lr = 2e-5
+    batch_size = 32
+    model_name = "bert-base-uncased"
+    num_labels = 2
+    data_file = "cyberbullying_tweets.csv"
+    model_path = "bert_finetuned_model.pth"
+
+    @staticmethod
+    def set_seed():
+        random.seed(Config.seed_value)
+        np.random.seed(Config.seed_value)
+        torch.manual_seed(Config.seed_value)
+        torch.cuda.manual_seed_all(Config.seed_value)
 
 
 def read_data(file_name):
@@ -133,7 +145,7 @@ def eval_model(model, data_loader, device):
 
 #     # load the pre-trained BERT model
 #     model = BertForSequenceClassification.from_pretrained(
-#         "bert-base-uncased", num_labels=2
+#         Config.model_name, num_labels=2
 #     )
 #     model = model.to(device)  # move the model to the device (GPU or CPU)
 
@@ -157,8 +169,10 @@ def eval_model(model, data_loader, device):
 
 
 def main():
+    Config.set_seed()
+
     # read in the data and save as a dataframe
-    df = read_data("cyberbullying_tweets.csv")
+    df = read_data(Config.data_file)
 
     # do initial preprocessing
     preprocessing = Preprocessing()
@@ -167,9 +181,11 @@ def main():
 
     # split the dataset into training, testing and validation sets
     X_train, X_test, y_train, y_test = split_dataset(
-        df, seed_value, df["text_clean"].values, df["cyberbullying_type"].values
+        df, Config.seed_value, df["text_clean"].values, df["cyberbullying_type"].values
     )
-    X_train, X_valid, y_train, y_valid = split_dataset(df, seed_value, X_train, y_train)
+    X_train, X_valid, y_train, y_valid = split_dataset(
+        df, Config.seed_value, X_train, y_train
+    )
 
     ros = RandomOverSampler()
     X_train_os, y_train_os = ros.fit_resample(
@@ -190,13 +206,13 @@ def main():
 
     # get and initialize the loaders
     train_loader = create_dataloader(
-        train_inputs, train_masks, train_labels, "random", batch_size=32
+        train_inputs, train_masks, train_labels, "random", batch_size=Config.batch_size
     )
     val_loader = create_dataloader(
-        val_inputs, val_masks, val_labels, "sequential", batch_size=32
+        val_inputs, val_masks, val_labels, "sequential", batch_size=Config.batch_size
     )
     test_loader = create_dataloader(
-        test_inputs, test_masks, test_labels, "sequential", batch_size=32
+        test_inputs, test_masks, test_labels, "sequential", batch_size=Config.batch_size
     )
 
     # TODO - add in previous main function logic here or whatever comes next (tbd)
