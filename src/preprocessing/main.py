@@ -90,7 +90,7 @@ class Preprocessing:
         Args:
             df (DataFrame): data to be used
         """
-        df["text_clean"] = [self.clean_tweet(tweet) for tweet in df["tweet_text"]]
+        df["text_clean"] = [self.clean_tweet(self, tweet) for tweet in df["tweet_text"]]
         return df
 
     def code_sentiment(self, df):
@@ -137,3 +137,5 @@ class Preprocessing:
         train_labels = torch.from_numpy(y_train_os)
         val_labels = torch.from_numpy(y_valid)
         test_labels = torch.from_numpy(y_test)
+        
+        return train_labels, val_labels, test_labels
