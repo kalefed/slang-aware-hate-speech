@@ -165,13 +165,7 @@ def main():
     preprocessing.clean_tweets(df)
     preprocessing.code_sentiment(df)
 
-    # print(df["text_clean"])
-    # print("----")
-    # print(df["cyberbullying_type"])
-
     # split the dataset into training, testing and validation sets
-    # TODO - there is an error with this: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2
-    # NOTE - the error is because the classes are unbalanced. there is some code in the notebook which fixes this so it should be integrated
     X_train, X_test, y_train, y_test = split_dataset(
         df, seed_value, df["text_clean"].values, df["cyberbullying_type"].values
     )
@@ -189,6 +183,7 @@ def main():
     val_inputs, val_masks = preprocessing.tokenizer(X_valid)
     test_inputs, test_masks = preprocessing.tokenizer(X_test)
 
+    # convert to tensors
     train_labels, val_labels, test_labels = preprocessing.convert_to_tensors(
         y_train_os, y_valid, y_test
     )
