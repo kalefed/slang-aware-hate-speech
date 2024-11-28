@@ -119,6 +119,42 @@ def eval_model(model, data_loader, device):
     )
 
 
+#NOTE - original main function code for reference
+# # main function
+# def main(train_loader, val_loader):
+#     """
+#     Fine-tunes a BERT model for text classification using preprocessed data.
+#     Assumes `train_loader` and `val_loader` are DataLoader objects created elsewhere.
+#     """
+
+#     # model and training parameters
+#     EPOCHS = 4  # num of times the model will go through the training data
+#     LR = 2e-5  # controls how much the model updates the weights
+
+#     # load the pre-trained BERT model
+#     model = BertForSequenceClassification.from_pretrained(
+#         "bert-base-uncased", num_labels=2
+#     )
+#     model = model.to(device)  # move the model to the device (GPU or CPU)
+
+#     # initialize the optimizer
+#     optimizer = AdamW(model.parameters(), lr=LR, correct_bias=False)
+
+#     # training loop
+#     for epoch in range(EPOCHS):
+#         print(f"Epoch {epoch + 1}/{EPOCHS}")
+#         train_loss, train_acc = train_epoch(model, train_loader, optimizer, device)
+#         print(f"Training Loss: {train_loss}, Training Accuracy: {train_acc}")
+
+#         val_loss, val_acc, report = eval_model(model, val_loader, device)
+#         print(f"Validation Loss: {val_loss}, Validation Accuracy: {val_acc}")
+#         print("Classification Report:\n", report)
+
+#     # save the trained model
+#     MODEL_PATH = "bert_finetuned_model.pth"
+#     torch.save(model.state_dict(), MODEL_PATH)
+#     print(f"Model saved to {MODEL_PATH}")
+
 def main():
     # read in the data and save as a dataframe
     df = read_data("testtweets.csv")
