@@ -11,8 +11,7 @@ def split_dataset(df, seed_value, x, y):
     """
     X_train, X_test, y_train, y_test = train_test_split(
         x, y, test_size=0.2, stratify=y, random_state=seed_value
-    )
-
+    )  # TODO - these should probably be renamed, but the function is still correct
     return X_train, X_test, y_train, y_test
 
 
