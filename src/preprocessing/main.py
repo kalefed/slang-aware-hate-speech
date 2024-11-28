@@ -5,6 +5,8 @@ import pandas as pd
 import torch
 from transformers import BertTokenizer
 
+pd.set_option("future.no_silent_downcasting", True)  # fix .replace error
+
 
 class Preprocessing:
     def __init__(self):
