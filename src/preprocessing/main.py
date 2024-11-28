@@ -101,8 +101,8 @@ class Preprocessing:
         Returns:
             pandas dataframe: updated DataFrame with coded sentiment
         """
-        df["cyberbullying_type"] = df["cyberbullying_type"].replace(
-            self.sentiment_mapping
+        df["cyberbullying_type"] = (
+            df["cyberbullying_type"].replace(self.sentiment_mapping).astype(str)
         )
         return df
 
@@ -137,5 +137,5 @@ class Preprocessing:
         train_labels = torch.from_numpy(y_train_os)
         val_labels = torch.from_numpy(y_valid)
         test_labels = torch.from_numpy(y_test)
-        
+
         return train_labels, val_labels, test_labels
