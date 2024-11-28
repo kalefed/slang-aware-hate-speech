@@ -178,7 +178,9 @@ def main():
     X_train, X_valid, y_train, y_valid = split_dataset(df, seed_value, X_train, y_train)
 
     ros = RandomOverSampler()
-    X_train_os, y_train_os = ros.fit_resample(np.array(X_train), np.array(y_train))
+    X_train_os, y_train_os = ros.fit_resample(
+        np.array(X_train).reshape(-1, 1), np.array(y_train).reshape(-1, 1)
+    )
 
     # tokenize the inputs
     train_inputs, train_masks = preprocessing.tokenizer(X_train_os)
