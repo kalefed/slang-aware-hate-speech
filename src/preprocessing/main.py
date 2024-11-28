@@ -104,7 +104,7 @@ class Preprocessing:
             pandas dataframe: updated DataFrame with coded sentiment
         """
         df["cyberbullying_type"] = (
-            df["cyberbullying_type"].replace(self.sentiment_mapping).astype(str)
+            df["cyberbullying_type"].replace(self.sentiment_mapping).astype(int)
         )
         return df
 
@@ -135,7 +135,7 @@ class Preprocessing:
 
         return input_ids, attention_masks
 
-    def convert_to_tensors(y_train_os, y_valid, y_test):
+    def convert_to_tensors(self, y_train_os, y_valid, y_test):
         # TODO - add docstring & determine if we need the 'y-valid' data
         train_labels = torch.from_numpy(y_train_os)
         val_labels = torch.from_numpy(y_valid)

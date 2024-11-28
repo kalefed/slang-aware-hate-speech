@@ -173,7 +173,7 @@ def main():
     # TODO - there is an error with this: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2
     # NOTE - the error is because the classes are unbalanced. there is some code in the notebook which fixes this so it should be integrated
     X_train, X_test, y_train, y_test = split_dataset(
-        df, seed_value, df["text_clean"], df["cyberbullying_type"]
+        df, seed_value, df["text_clean"].values, df["cyberbullying_type"].values
     )
     X_train, X_valid, y_train, y_valid = split_dataset(df, seed_value, X_train, y_train)
 
@@ -181,6 +181,8 @@ def main():
     X_train_os, y_train_os = ros.fit_resample(
         np.array(X_train).reshape(-1, 1), np.array(y_train).reshape(-1, 1)
     )
+    X_train_os = X_train_os.flatten()
+    y_train_os = y_train_os.flatten()
 
     # tokenize the inputs
     train_inputs, train_masks = preprocessing.tokenizer(X_train_os)
