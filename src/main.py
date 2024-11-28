@@ -25,6 +25,14 @@ torch.cuda.manual_seed_all(seed_value)
 
 
 def read_data(file_name):
+    """Reads in the data from the given csv file as a dataframe.
+
+    Args:
+        file_name (string): the input file name
+
+    Returns:
+        dataframe: input data as a dataframe
+    """
     file_dir = os.path.dirname(__file__)
     csv_path = os.path.join(file_dir, "..", "data", file_name)
     return pd.read_csv(csv_path)
@@ -113,7 +121,7 @@ def eval_model(model, data_loader, device):
 
 def main():
     # read in the data and save as a dataframe
-    df = read_data("testtweets.csv")  # TODO - check this import path
+    df = read_data("testtweets.csv")
 
     # do initial preprocessing
     preprocessing = Preprocessing()
@@ -151,7 +159,7 @@ def main():
         test_inputs, test_masks, test_labels, "sequential", batch_size=32
     )
 
-    # TODO - add in previous main function logic here
+    # TODO - add in previous main function logic here or whatever comes next (tbd)
 
 
 if __name__ == "__main__":
