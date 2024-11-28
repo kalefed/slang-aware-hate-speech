@@ -3,17 +3,25 @@ import os
 import numpy as np
 import pandas as pd
 import torch
+import random
 from tqdm import tqdm
 from transformers import BertForSequenceClassification, AdamW
 from sklearn.metrics import classification_report
 from imblearn.over_sampling import RandomOverSampler
 
-from preprocessing.main import Preprocessing  # TODO - this import needs to be tested :p
+from preprocessing.main import Preprocessing
 from utils import split_dataset, create_dataloader
 
 
 # checks if the GPU is avalible for faster processing
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# set up seed value
+seed_value = 2042
+random.seed(seed_value)
+np.random.seed(seed_value)
+torch.manual_seed(seed_value)
+torch.cuda.manual_seed_all(seed_value)
 
 
 def read_data(file_name):
@@ -113,8 +121,8 @@ def main():
     preprocessing.code_sentiment(df)
 
     # split the dataset into training, testing and validation sets
-    # TODO - put an actually correct seed value (8 is just a placeholder) and also figure out validation set splitting too
-    seed_value = 2
+    # TODO - there is an error with this: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2
+    # NOTE - the error is because the classes are unbalanced. there is some code in the notebook which fixes this so it should be integrated
     X_train, X_test, y_train, y_test = split_dataset(
         df, seed_value, df["text_clean"], df["cyberbullying_type"]
     )
@@ -128,7 +136,6 @@ def main():
     val_inputs, val_masks = preprocessing.tokenizer(X_valid)
     test_inputs, test_masks = preprocessing.tokenizer(X_test)
 
-    # TODO - define the missing variables
     train_labels, val_labels, test_labels = preprocessing.convert_to_tensors(
         y_train_os, y_valid, y_test
     )
