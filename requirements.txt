@@ -5,3 +5,4 @@ requests
 pandas
 tqdm
 demoji
+imbalanced-learn
