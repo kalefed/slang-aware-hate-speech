@@ -24,7 +24,7 @@ class Config:
     lr = 2e-5
     batch_size = 32
     model_name = "bert-base-uncased"
-    num_labels = 2
+    num_labels = 6
     data_file = "cyberbullying_tweets.csv"
     model_path = "bert_finetuned_model.pth"
 
@@ -60,9 +60,9 @@ def train_epoch(model, data_loader, optimizer, device):
     correct_predictions = 0  # count how many predictions model got right
 
     for batch in tqdm(data_loader, desc="Training"):  # loops through batchs of dataa
-        input_ids = batch["input_ids"].to(device)  # move input data to the "device"
-        attention_mask = batch["attention_mask"].to(device)
-        labels = batch["labels"].to(device)
+        input_ids = batch[0].to(device)  # move input data to the "device"
+        attention_mask = batch[1].to(device)
+        labels = batch[2].to(device)
 
         optimizer.zero_grad()  # clears the prev gradients
         outputs = model(
@@ -102,9 +102,9 @@ def eval_model(model, data_loader, device):
         for batch in tqdm(
             data_loader, desc="Evaluating"
         ):  # loop through validation data
-            input_ids = batch["input_ids"].to(device)
-            attention_mask = batch["attention_mask"].to(device)
-            labels = batch["labels"].to(device)
+            input_ids = batch[0].to(device)
+            attention_mask = batch[1].to(device)
+            labels = batch[2].to(device)
 
             outputs = model(
                 input_ids=input_ids, attention_mask=attention_mask, labels=labels
@@ -129,43 +129,6 @@ def eval_model(model, data_loader, device):
         correct_predictions.double() / len(data_loader.dataset),
         report,
     )
-
-
-# NOTE - original main function code for reference
-# # main function
-# def main(train_loader, val_loader):
-#     """
-#     Fine-tunes a BERT model for text classification using preprocessed data.
-#     Assumes `train_loader` and `val_loader` are DataLoader objects created elsewhere.
-#     """
-
-#     # model and training parameters
-#     EPOCHS = 4  # num of times the model will go through the training data
-#     LR = 2e-5  # controls how much the model updates the weights
-
-#     # load the pre-trained BERT model
-#     model = BertForSequenceClassification.from_pretrained(
-#         Config.model_name, num_labels=2
-#     )
-#     model = model.to(device)  # move the model to the device (GPU or CPU)
-
-#     # initialize the optimizer
-#     optimizer = AdamW(model.parameters(), lr=LR, correct_bias=False)
-
-#     # training loop
-#     for epoch in range(EPOCHS):
-#         print(f"Epoch {epoch + 1}/{EPOCHS}")
-#         train_loss, train_acc = train_epoch(model, train_loader, optimizer, device)
-#         print(f"Training Loss: {train_loss}, Training Accuracy: {train_acc}")
-
-#         val_loss, val_acc, report = eval_model(model, val_loader, device)
-#         print(f"Validation Loss: {val_loss}, Validation Accuracy: {val_acc}")
-#         print("Classification Report:\n", report)
-
-#     # save the trained model
-#     MODEL_PATH = "bert_finetuned_model.pth"
-#     torch.save(model.state_dict(), MODEL_PATH)
-#     print(f"Model saved to {MODEL_PATH}")
 
 
 def main():
@@ -215,8 +178,37 @@ def main():
         test_inputs, test_masks, test_labels, "sequential", batch_size=Config.batch_size
     )
 
-    # TODO - add in previous main function logic here or whatever comes next (tbd)
+    # load the pre-trained BERT model
+    model = BertForSequenceClassification.from_pretrained(Config.model_name, num_labels = Config.num_labels)
 
+    model = model.to(device) 
+
+    # initialize the AdamW optimizer 
+    optimizer = AdamW(model.parameters(), lr = Config.lr, correct_bias=False)
+
+    # fine tuning training loop
+    print("Starting fine-tuning process...")
+    for epoch in range(Config.epochs):
+        print(f"Epoch {epoch + 1}/{Config.epochs}")
+
+        # training
+        train_loss, train_acc = train_epoch(model, train_loader, optimizer, device)
+        print(f"Training Loss: {train_loss}, Training Accuracy: {train_acc}")
+
+        # validation
+        val_loss, val_acc, report = eval_model(model, val_loader, device)
+        print(f"Validation Loss: {val_loss}, Validation Accuracy: {val_acc}")
+        print("Classification Report:\n", report)
+
+    # save the model
+    torch.save(model.state_dict(), Config.model_path)
+    print(f"Model saved to {Config.model_path}")
+
+    # evaluate on test set
+    print("Evaluating on the test set...")
+    test_loss, test_acc, test_report = eval_model(model, test_loader, device)
+    print(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_acc:.4f}")
+    print("Test Classification Report:\n", test_report)
 
 if __name__ == "__main__":
     main()
