@@ -6,9 +6,13 @@ import torch
 import random
 from tqdm import tqdm
 from transformers import BertForSequenceClassification, AdamW
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    ConfusionMatrixDisplay,
+)
 from imblearn.over_sampling import RandomOverSampler
-
+import matplotlib.pyplot as plt
 from preprocessing.main import Preprocessing
 from utils import split_dataset, create_dataloader
 
@@ -143,16 +147,32 @@ def eval_model(model, data_loader, device):
     )
 
 
+def conf_matrix(y_true, y_pred, title, labels):
+    # Compute the confusion matrix
+    cm = confusion_matrix(y_true, y_pred, labels=labels)
+
+    # Plot the confusion matrix
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
+    disp.plot(cmap="Blues")
+    plt.title(title)
+    plt.show()
+
+
 def main():
+    print("Starting config")
     Config.set_seed()
 
     # read in the data and save as a dataframe
     df = read_data(Config.data_file)
 
+    print("Starting preprocessing")
+
     # do initial preprocessing
     preprocessing = Preprocessing()
     preprocessing.clean_tweets(df)
     preprocessing.code_sentiment(df)
+
+    print("split dataset")
 
     # split the dataset into training, testing and validation sets
     X_train, X_test, y_train, y_test = split_dataset(
@@ -189,6 +209,8 @@ def main():
     test_loader = create_dataloader(
         test_inputs, test_masks, test_labels, "sequential", batch_size=Config.batch_size
     )
+
+    print("load model")
 
     # load the pre-trained BERT model
     model = BertForSequenceClassification.from_pretrained(

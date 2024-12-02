@@ -6,3 +6,4 @@ pandas
 tqdm
 demoji
 imbalanced-learn
+matplotlib
