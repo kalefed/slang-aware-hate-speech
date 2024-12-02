@@ -5,7 +5,7 @@ import pandas as pd
 import torch
 import random
 from tqdm import tqdm
-from transformers import BertForSequenceClassification, AdamW
+from transformers import DistilBertForSequenceClassification, AdamW
 from sklearn.metrics import classification_report, confusion_matrix
 from imblearn.over_sampling import RandomOverSampler
 
@@ -21,12 +21,12 @@ class Config:
 
     seed_value = 2042
     epochs = 4
-    lr = 2e-5
+    lr = 5e-5
     batch_size = 32
-    model_name = "bert-base-uncased"
+    model_name = "distilbert-base-uncased"
     num_labels = 6
     data_file = "cyberbullying_tweets.csv"
-    model_path = "bert_finetuned_model.pth"
+    model_path = "distilbert_finetuned_model.pth"
 
     @staticmethod
     def set_seed():
@@ -66,8 +66,8 @@ def train_epoch(model, data_loader, optimizer, device):
 
         optimizer.zero_grad()  # clears the prev gradients
         outputs = model(
-            input_ids=input_ids, attention_mask=attention_mask, labels=labels
-        )
+            input_ids=input_ids, attention_mask=attention_mask, labels=labels)
+
         loss = outputs.loss  # get the loss for this batch
         logits = outputs.logits  # get the models predictions
 
@@ -145,7 +145,7 @@ def eval_model(model, data_loader, device):
 
 def main():
     Config.set_seed()
-
+    print("Starting the script...")
     # read in the data and save as a dataframe
     df = read_data(Config.data_file)
 
@@ -154,6 +154,9 @@ def main():
     preprocessing.clean_tweets(df)
     preprocessing.code_sentiment(df)
 
+    print("preprocessing done")
+
+    print("splitting data")
     # split the dataset into training, testing and validation sets
     X_train, X_test, y_train, y_test = split_dataset(
         df, Config.seed_value, df["text_clean"].values, df["cyberbullying_type"].values
@@ -169,11 +172,13 @@ def main():
     X_train_os = X_train_os.flatten()
     y_train_os = y_train_os.flatten()
 
+    print("tokenize data")
     # tokenize the inputs
     train_inputs, train_masks = preprocessing.tokenizer(X_train_os)
     val_inputs, val_masks = preprocessing.tokenizer(X_valid)
     test_inputs, test_masks = preprocessing.tokenizer(X_test)
 
+    print("convert to tensors")
     # convert to tensors
     train_labels, val_labels, test_labels = preprocessing.convert_to_tensors(
         y_train_os, y_valid, y_test
@@ -190,10 +195,11 @@ def main():
         test_inputs, test_masks, test_labels, "sequential", batch_size=Config.batch_size
     )
 
+    print("load model")
     # load the pre-trained BERT model
-    model = BertForSequenceClassification.from_pretrained(
-        Config.model_name, num_labels=Config.num_labels
-    )
+    model = DistilBertForSequenceClassification.from_pretrained(
+        Config.model_name, num_labels=Config.num_labels)
+
 
     model = model.to(device)
 

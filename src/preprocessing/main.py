@@ -3,7 +3,7 @@ import re
 import demoji
 import pandas as pd
 import torch
-from transformers import BertTokenizer
+from transformers import DistilBertTokenizer
 
 pd.set_option("future.no_silent_downcasting", True)  # fix .replace error
 
@@ -127,9 +127,9 @@ class Preprocessing:
         )
         return df
 
-    def tokenizer(self, data, max_length=128):
-        tokenizer = BertTokenizer.from_pretrained(
-            "bert-base-uncased", do_lower_case=True
+    def tokenizer(self, data, max_length=512):
+        tokenizer = DistilBertTokenizer.from_pretrained(
+            "distilbert-base-uncased", do_lower_case=True
         )
         input_ids = []
 
