@@ -6,9 +6,13 @@ import torch
 import random
 from tqdm import tqdm
 from transformers import BertForSequenceClassification, AdamW
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    ConfusionMatrixDisplay,
+)
 from imblearn.over_sampling import RandomOverSampler
-
+import matplotlib.pyplot as plt
 from preprocessing.main import Preprocessing
 from utils import split_dataset, create_dataloader
 
@@ -20,7 +24,7 @@ class Config:
     """Configuration class to hold all settings and hyperparameters"""
 
     seed_value = 2042
-    epochs = 4
+    epochs = 6
     lr = 2e-5
     batch_size = 32
     model_name = "bert-base-uncased"
@@ -48,6 +52,17 @@ def read_data(file_name):
     file_dir = os.path.dirname(__file__)
     csv_path = os.path.join(file_dir, "..", "data", file_name)
     return pd.read_csv(csv_path)
+
+
+def conf_matrix(y_true, y_pred, title, labels):
+    # Compute the confusion matrix
+    cm = confusion_matrix(y_true, y_pred, labels=labels)
+
+    # Plot the confusion matrix
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
+    disp.plot(cmap="Blues")
+    plt.title(title)
+    plt.show()
 
 
 # training function
@@ -131,28 +146,43 @@ def eval_model(model, data_loader, device):
         "other_cyberbullying",
     ]
     # generate detailed perfomance report
-    report = classification_report(all_labels, all_labels, target_names=sentiments)
-    conf_matrix = confusion_matrix(
-        all_labels, all_labels, " BERT Sentiment Analysis\nConfusion Matrix", sentiments
-    )
+    report = classification_report(all_labels, all_preds, target_names=sentiments)
+
+    # Error handling for confusion matrix generation
+    try:
+        confs_matrix = conf_matrix(
+            all_labels,
+            all_preds,
+            " BERT Sentiment Analysis\nConfusion Matrix",
+            sentiments,
+        )
+    except Exception as e:
+        print(f"Error generating confusion matrix: {e}")
+        confs_matrix = None  # set to None or some placeholder value
+
     return (
         total_loss / len(data_loader),
         correct_predictions.double() / len(data_loader.dataset),
         report,
-        conf_matrix,
+        confs_matrix,
     )
 
 
 def main():
+    print("Starting config")
     Config.set_seed()
 
     # read in the data and save as a dataframe
     df = read_data(Config.data_file)
 
+    print("Starting preprocessing")
+
     # do initial preprocessing
     preprocessing = Preprocessing()
     preprocessing.clean_tweets(df)
     preprocessing.code_sentiment(df)
+
+    print("split dataset")
 
     # split the dataset into training, testing and validation sets
     X_train, X_test, y_train, y_test = split_dataset(
@@ -190,6 +220,8 @@ def main():
         test_inputs, test_masks, test_labels, "sequential", batch_size=Config.batch_size
     )
 
+    print("load model")
+
     # load the pre-trained BERT model
     model = BertForSequenceClassification.from_pretrained(
         Config.model_name, num_labels=Config.num_labels
@@ -210,11 +242,11 @@ def main():
         print(f"Training Loss: {train_loss}, Training Accuracy: {train_acc}")
 
         # validation
-        val_loss, val_acc, report, conf_matrix = eval_model(model, val_loader, device)
+        val_loss, val_acc, report, confus_matrix = eval_model(model, val_loader, device)
 
         print(f"Validation Loss: {val_loss}, Validation Accuracy: {val_acc}")
         print("Classification Report:\n", report)
-        print(conf_matrix)
+        print(confus_matrix)
 
     # save the model
     torch.save(model.state_dict(), Config.model_path)

@@ -9,6 +9,7 @@ venv/
 dist/
 build/
 
+src/bert_finetuned_model.pth
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 

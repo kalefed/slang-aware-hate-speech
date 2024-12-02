@@ -1,9 +1,97 @@
 import os
 import requests
-import csv
 import re
+import functools
+
+SLANG_WORDS_SET = {
+    "cool",
+    "lit",
+    "dope",
+    "fire",
+    "savage",
+    "af",
+    "cap",
+    "cheugy",
+    "cringe",
+    "dead",
+    "extra",
+    "fit",
+    "goat",
+    "go off",
+    "gucci",
+    "hits different",
+    "irl",
+    "iykyk",
+    "low-key",
+    "hear me out",
+    "omg",
+    "ong",
+    "preppy",
+    "rizz",
+    "salty",
+    "sick",
+    "sleep on",
+    "snatched",
+    "tbh",
+    "tea",
+    "vanilla",
+    "thirsty",
+    "yeet",
+    "yassify",
+    "delulu",
+    "skibidi",
+    "sigma",
+    "drip",
+    "bussin",
+    "gyat",
+    "mewing",
+    "fanum tax",
+    "bet",
+    "sus",
+    "basic",
+    "it's giving",
+    "bop",
+    "big yikes",
+    "glow-up",
+    "ohio",
+    "period",
+    "periodt",
+    "ick",
+    "mid",
+    "big w",
+    "big l",
+    "asf",
+    "asl",
+    "aura",
+    "based",
+    "bde",
+    "bffr",
+    "boujee",
+    "brainrot",
+    "caught in 4k",
+    "clapback",
+    "cook",
+    "dab",
+    "delusionship",
+    "dogs",
+    "era",
+    "finna",
+    "gagged",
+    "ghost",
+    "glaze",
+    "ipad kid",
+    "i oop",
+    "karen",
+    "main character",
+    "mogging",
+    "npc",
+    "ok boomer",
+    "out of pocket",
+    "waste of space",
+}
 
 
+@functools.cache
 def get_word_definition(word):
     """
     Querieies the urban dictionary API for a given word, returning its definition.
@@ -48,47 +136,8 @@ def get_slang_words(phrase):
     Returns:
         list: a list of all slang words/phrases in the given phrase
     """
-    # Tokenize the phrase into lowercase words
-    # Tokenize the phrase into lowercase words
-    words_in_phrase = set(
-        re.findall(r"\b\w+\b", phrase.lower())
-    )  # Tokenize and normalize to lowercase
-
-    # Initialize an empty set for matched slang
-    matched_slang = set()
-
-    # Get the absolute path to the CSV file by navigating from the script's location
-    script_dir = os.path.dirname(__file__)  # Directory where urban_dict.py is located
-    csv_file_path = os.path.join(
-        script_dir, "../../data/slang.csv"
-    )  # Go up two directories to 'data'
-
-    # Initialize a list to hold all slang terms (both multi-word and single-word)
-    slang_terms = []
-
-    # Read slang terms from CSV file
-    with open(csv_file_path, mode="r") as file:
-        csv_reader = csv.reader(file)
-
-        # Skip the header row
-        next(csv_reader, None)
-
-        # Loop through each row in the CSV to populate the slang_terms list
-        for row in csv_reader:
-            slang_term = row[0].strip().lower()  # Normalize slang to lowercase
-            slang_terms.append(slang_term)
-
-    # Sort slang terms by length (longer phrases first)
-    slang_terms.sort(key=lambda term: len(term.split()), reverse=True)
-
-    # Check each slang term (multi-word first, then single-word)
-    for slang_term in slang_terms:
-        # If the phrase is in the words_in_phrase set, add it to matched_slang
-        if slang_term in phrase.lower():
-            matched_slang.add(slang_term)
-
-    # Return the matched slang words as a list
-    return list(matched_slang)
+    words_in_text = set(re.findall(r"\b\w+\b", phrase.lower()))  # Tokenize text
+    return list(words_in_text & SLANG_WORDS_SET)  # Intersection with slang set
 
 
 def slang_words_def(slang_contained):
