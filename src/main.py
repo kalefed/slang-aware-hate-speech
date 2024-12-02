@@ -24,9 +24,9 @@ class Config:
     """Configuration class to hold all settings and hyperparameters"""
 
     seed_value = 2042
-    epochs = 1
+    epochs = 6
     lr = 2e-5
-    batch_size = 128
+    batch_size = 32
     model_name = "bert-base-uncased"
     num_labels = 6
     data_file = "cyberbullying_tweets.csv"
