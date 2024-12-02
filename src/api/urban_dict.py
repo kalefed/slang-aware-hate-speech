@@ -1,5 +1,7 @@
+import os
 import requests
 import csv
+import re
 
 
 def get_word_definition(word):
@@ -32,7 +34,6 @@ def get_word_definition(word):
 
     except requests.exceptions.RequestException as e:
         # Handle any network-related errors or exceptions
-        print("test")
         print("Error:", e)
         return None
 
@@ -47,28 +48,46 @@ def get_slang_words(phrase):
     Returns:
         list: a list of all slang words/phrases in the given phrase
     """
-    # initialize an empty set for matched slang
+    # Tokenize the phrase into lowercase words
+    # Tokenize the phrase into lowercase words
+    words_in_phrase = set(
+        re.findall(r"\b\w+\b", phrase.lower())
+    )  # Tokenize and normalize to lowercase
+
+    # Initialize an empty set for matched slang
     matched_slang = set()
 
-    #words_in_phrase = set(re.findall(r'\b\w+\b', phrase.lower()))
+    # Get the absolute path to the CSV file by navigating from the script's location
+    script_dir = os.path.dirname(__file__)  # Directory where urban_dict.py is located
+    csv_file_path = os.path.join(
+        script_dir, "../../data/slang.csv"
+    )  # Go up two directories to 'data'
 
-    # take the phrase and determine which words are in the slang corpus
-    with open("../data/slang.csv", mode="r") as file:
-        # create a CSV reader object
+    # Initialize a list to hold all slang terms (both multi-word and single-word)
+    slang_terms = []
+
+    # Read slang terms from CSV file
+    with open(csv_file_path, mode="r") as file:
         csv_reader = csv.reader(file)
 
-        # skip the header row
+        # Skip the header row
         next(csv_reader, None)
 
-        # loop through each row in the CSV
+        # Loop through each row in the CSV to populate the slang_terms list
         for row in csv_reader:
-            slang_word = row[0]
+            slang_term = row[0].strip().lower()  # Normalize slang to lowercase
+            slang_terms.append(slang_term)
 
-            # if the slang word is in the phrase, add it to the matched slang set
-            if slang_word in phrase:
-                matched_slang.add(slang_word)
+    # Sort slang terms by length (longer phrases first)
+    slang_terms.sort(key=lambda term: len(term.split()), reverse=True)
 
-    # return the matched slang words as a list
+    # Check each slang term (multi-word first, then single-word)
+    for slang_term in slang_terms:
+        # If the phrase is in the words_in_phrase set, add it to matched_slang
+        if slang_term in phrase.lower():
+            matched_slang.add(slang_term)
+
+    # Return the matched slang words as a list
     return list(matched_slang)
 
 
