@@ -5,10 +5,14 @@ import pandas as pd
 import torch
 import random
 from tqdm import tqdm
-from transformers import DistilBertForSequenceClassification, AdamW
-from sklearn.metrics import classification_report, confusion_matrix
+from transformers import DistilBertForSequenceClassification,AdamW
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    ConfusionMatrixDisplay,
+)
 from imblearn.over_sampling import RandomOverSampler
-
+import matplotlib.pyplot as plt
 from preprocessing.main import Preprocessing
 from utils import split_dataset, create_dataloader
 
@@ -20,8 +24,8 @@ class Config:
     """Configuration class to hold all settings and hyperparameters"""
 
     seed_value = 2042
-    epochs = 4
-    lr = 5e-5
+    epochs = 6
+    lr = 2e-5
     batch_size = 32
     model_name = "distilbert-base-uncased"
     num_labels = 6
@@ -50,6 +54,18 @@ def read_data(file_name):
     return pd.read_csv(csv_path)
 
 
+def conf_matrix(y_true, y_pred, title, labels):
+
+    # Compute the confusion matrix
+    cm = confusion_matrix(y_true, y_pred)
+
+    # Plot the confusion matrix
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
+    disp.plot(cmap="Blues")
+    plt.title(title)
+    plt.show()
+
+
 # training function
 def train_epoch(model, data_loader, optimizer, device):
     """
@@ -66,8 +82,8 @@ def train_epoch(model, data_loader, optimizer, device):
 
         optimizer.zero_grad()  # clears the prev gradients
         outputs = model(
-            input_ids=input_ids, attention_mask=attention_mask, labels=labels)
-
+            input_ids=input_ids, attention_mask=attention_mask, labels=labels
+        )
         loss = outputs.loss  # get the loss for this batch
         logits = outputs.logits  # get the models predictions
 
@@ -131,32 +147,44 @@ def eval_model(model, data_loader, device):
         "other_cyberbullying",
     ]
     # generate detailed perfomance report
-    report = classification_report(all_labels, all_labels, target_names=sentiments)
-    conf_matrix = confusion_matrix(
-        all_labels, all_labels, " BERT Sentiment Analysis\nConfusion Matrix", sentiments
-    )
+    report = classification_report(all_labels, all_preds, target_names=sentiments)
+
+    # Error handling for confusion matrix generation
+    try:
+        confs_matrix = conf_matrix(
+            all_labels,
+            all_preds,
+            " BERT Sentiment Analysis\nConfusion Matrix",
+            sentiments,
+        )
+    except Exception as e:
+        print(f"Error generating confusion matrix: {e}")
+        confs_matrix = None  # set to None or some placeholder value
+
     return (
         total_loss / len(data_loader),
         correct_predictions.double() / len(data_loader.dataset),
         report,
-        conf_matrix,
+        confs_matrix,
     )
 
 
 def main():
+    print("Starting config")
     Config.set_seed()
-    print("Starting the script...")
+
     # read in the data and save as a dataframe
     df = read_data(Config.data_file)
+
+    print("Starting preprocessing")
 
     # do initial preprocessing
     preprocessing = Preprocessing()
     preprocessing.clean_tweets(df)
     preprocessing.code_sentiment(df)
 
-    print("preprocessing done")
+    print("split dataset")
 
-    print("splitting data")
     # split the dataset into training, testing and validation sets
     X_train, X_test, y_train, y_test = split_dataset(
         df, Config.seed_value, df["text_clean"].values, df["cyberbullying_type"].values
@@ -172,13 +200,11 @@ def main():
     X_train_os = X_train_os.flatten()
     y_train_os = y_train_os.flatten()
 
-    print("tokenize data")
     # tokenize the inputs
     train_inputs, train_masks = preprocessing.tokenizer(X_train_os)
     val_inputs, val_masks = preprocessing.tokenizer(X_valid)
     test_inputs, test_masks = preprocessing.tokenizer(X_test)
 
-    print("convert to tensors")
     # convert to tensors
     train_labels, val_labels, test_labels = preprocessing.convert_to_tensors(
         y_train_os, y_valid, y_test
@@ -196,10 +222,11 @@ def main():
     )
 
     print("load model")
-    # load the pre-trained BERT model
-    model = DistilBertForSequenceClassification.from_pretrained(
-        Config.model_name, num_labels=Config.num_labels)
 
+    # load the pre-trained BERT model
+    model =  DistilBertForSequenceClassification.from_pretrained(
+        Config.model_name, num_labels=Config.num_labels
+    )
 
     model = model.to(device)
 
@@ -216,11 +243,11 @@ def main():
         print(f"Training Loss: {train_loss}, Training Accuracy: {train_acc}")
 
         # validation
-        val_loss, val_acc, report, conf_matrix = eval_model(model, val_loader, device)
+        val_loss, val_acc, report, confus_matrix = eval_model(model, val_loader, device)
 
         print(f"Validation Loss: {val_loss}, Validation Accuracy: {val_acc}")
         print("Classification Report:\n", report)
-        print(conf_matrix)
+        print(confus_matrix)
 
     # save the model
     torch.save(model.state_dict(), Config.model_path)
