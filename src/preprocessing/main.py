@@ -70,6 +70,24 @@ class Preprocessing:
         return text
 
     @staticmethod
+    def add_slang_def(text):
+        slang_contained = get_slang_words(text)
+        word_defs = slang_words_def(slang_contained)
+
+        # Loop through the slang words and add their definitions to the text
+        for slang, definition in word_defs.items():
+            # Create a formatted string to include the definition
+            formatted_slang = f"{slang} (meaning: {definition})"
+
+            # Replace the slang word in the text with the formatted string
+            # Using re.sub to replace the exact slang word (case-insensitive)
+            text = re.sub(
+                rf"\b{re.escape(slang)}\b", formatted_slang, text, flags=re.IGNORECASE
+            )
+
+        return text
+
+    @staticmethod
     def clean_tweet(self, text):
         """Apply all preprocessing steps to the text.
 
@@ -84,6 +102,7 @@ class Preprocessing:
         text = self.remove_mentions(text)
         text = self.to_lowercase(text)
         text = self.convert_emojis(text)
+        text = self.add_slang_def(text)
         return text
 
     def clean_tweets(self, df):
@@ -109,8 +128,6 @@ class Preprocessing:
         return df
 
     def tokenizer(self, data, max_length=128):
-        # TODO - this code is from kaggle file so should look over and change if needed
-        # TODO - Add docstring once done
         tokenizer = BertTokenizer.from_pretrained(
             "bert-base-uncased", do_lower_case=True
         )
@@ -136,7 +153,6 @@ class Preprocessing:
         return input_ids, attention_masks
 
     def convert_to_tensors(self, y_train_os, y_valid, y_test):
-        # TODO - add docstring & determine if we need the 'y-valid' data
         train_labels = torch.from_numpy(y_train_os)
         val_labels = torch.from_numpy(y_valid)
         test_labels = torch.from_numpy(y_test)

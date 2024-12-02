@@ -6,7 +6,7 @@ import torch
 import random
 from tqdm import tqdm
 from transformers import BertForSequenceClassification, AdamW
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, confusion_matrix
 from imblearn.over_sampling import RandomOverSampler
 
 from preprocessing.main import Preprocessing
@@ -122,12 +122,24 @@ def eval_model(model, data_loader, device):
             all_labels.extend(labels.cpu().numpy())
             all_preds.extend(preds.cpu().numpy())
 
+    sentiments = [
+        "religion",
+        "age",
+        "ethnicity",
+        "gender",
+        "not_cyberbullying",
+        "other_cyberbullying",
+    ]
     # generate detailed perfomance report
-    report = classification_report(all_labels, all_preds, zero_division=1)
+    report = classification_report(all_labels, all_labels, target_names=sentiments)
+    conf_matrix = confusion_matrix(
+        all_labels, all_labels, " BERT Sentiment Analysis\nConfusion Matrix", sentiments
+    )
     return (
         total_loss / len(data_loader),
         correct_predictions.double() / len(data_loader.dataset),
         report,
+        conf_matrix,
     )
 
 
@@ -179,12 +191,14 @@ def main():
     )
 
     # load the pre-trained BERT model
-    model = BertForSequenceClassification.from_pretrained(Config.model_name, num_labels = Config.num_labels)
+    model = BertForSequenceClassification.from_pretrained(
+        Config.model_name, num_labels=Config.num_labels
+    )
 
-    model = model.to(device) 
+    model = model.to(device)
 
-    # initialize the AdamW optimizer 
-    optimizer = AdamW(model.parameters(), lr = Config.lr, correct_bias=False)
+    # initialize the AdamW optimizer
+    optimizer = AdamW(model.parameters(), lr=Config.lr, correct_bias=False)
 
     # fine tuning training loop
     print("Starting fine-tuning process...")
@@ -196,9 +210,11 @@ def main():
         print(f"Training Loss: {train_loss}, Training Accuracy: {train_acc}")
 
         # validation
-        val_loss, val_acc, report = eval_model(model, val_loader, device)
+        val_loss, val_acc, report, conf_matrix = eval_model(model, val_loader, device)
+
         print(f"Validation Loss: {val_loss}, Validation Accuracy: {val_acc}")
         print("Classification Report:\n", report)
+        print(conf_matrix)
 
     # save the model
     torch.save(model.state_dict(), Config.model_path)
@@ -206,9 +222,13 @@ def main():
 
     # evaluate on test set
     print("Evaluating on the test set...")
-    test_loss, test_acc, test_report = eval_model(model, test_loader, device)
+    test_loss, test_acc, test_report, test_conf_matrix = eval_model(
+        model, test_loader, device
+    )
     print(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_acc:.4f}")
     print("Test Classification Report:\n", test_report)
+    print(test_conf_matrix)
+
 
 if __name__ == "__main__":
     main()
