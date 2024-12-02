@@ -3,6 +3,7 @@ import re
 import demoji
 import pandas as pd
 import torch
+from tqdm import tqdm
 from transformers import BertTokenizer
 
 pd.set_option("future.no_silent_downcasting", True)  # fix .replace error
@@ -111,7 +112,11 @@ class Preprocessing:
         Args:
             df (DataFrame): data to be used
         """
-        df["text_clean"] = [self.clean_tweet(self, tweet) for tweet in df["tweet_text"]]
+        df["text_clean"] = [
+            self.clean_tweet(self, tweet)
+            for tweet in tqdm(df["tweet_text"], desc="Cleaning Tweets")
+        ]
+
         return df
 
     def code_sentiment(self, df):
