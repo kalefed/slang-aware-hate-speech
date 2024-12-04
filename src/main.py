@@ -55,6 +55,9 @@ def read_data(file_name):
 
 
 def conf_matrix(y_true, y_pred, title, labels):
+    """
+    Generates the confusion matrix for evaluation.
+    """
     # Compute the confusion matrix
     cm = confusion_matrix(y_true, y_pred, labels=labels)
 
@@ -65,7 +68,6 @@ def conf_matrix(y_true, y_pred, title, labels):
     plt.show()
 
 
-# training function
 def train_epoch(model, data_loader, optimizer, device):
     """
     Trains the model for one epoch.
@@ -102,7 +104,6 @@ def train_epoch(model, data_loader, optimizer, device):
     )
 
 
-# evaluation function
 def eval_model(model, data_loader, device):
     """
     Evaluates the model on the validation dataset.
@@ -182,7 +183,7 @@ def main():
     preprocessing.clean_tweets(df)
     preprocessing.code_sentiment(df)
 
-    print("split dataset")
+    print("Split the dataset")
 
     # split the dataset into training, testing and validation sets
     X_train, X_test, y_train, y_test = split_dataset(
@@ -220,7 +221,7 @@ def main():
         test_inputs, test_masks, test_labels, "sequential", batch_size=Config.batch_size
     )
 
-    print("load model")
+    print("Loading the model")
 
     # load the pre-trained BERT model
     model = BertForSequenceClassification.from_pretrained(

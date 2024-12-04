@@ -141,6 +141,15 @@ def get_slang_words(phrase):
 
 
 def slang_words_def(slang_contained):
+    """
+    Gets the definitions of all of the slang contained words.
+
+    Args:
+        slang_contained (list): a list of all slang words/phrases in the given phrase
+
+    Returns:
+        dictionary: key/value pairs with slang word and definition
+    """
     # initialize empty dictionary to hold words and their definitions
     word_defs = dict()
 
